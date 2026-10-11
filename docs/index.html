@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>期货数据工作台 · 国内期货全品种全合约日K数据</title>
+<meta name="description" content="把六大期货交易所的全品种、全合约（含已退市）日K数据抓取下来，本地网页界面查看、分析与导出。">
+<link rel="stylesheet" href="assets/docs.css">
+<style>
+  .feat { display: grid; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr)); gap: 16px; margin: 18px 0 6px; }
+  .feat .mini { padding: 20px 22px; }
+  .feat .mini .ic { font-size: 22px; display: block; margin-bottom: 8px; }
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 42px; padding: 0 22px; border-radius: 11px;
+    font-size: 14px; font-weight: 600; text-decoration: none; border: 1px solid transparent;
+    transition: .16s; border-bottom: none;
+  }
+  .btn.pri {
+    color: #fff; background: linear-gradient(135deg, var(--primary), var(--primary-2));
+    box-shadow: 0 8px 22px rgba(74, 99, 231, .32);
+  }
+  .btn.pri:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(74, 99, 231, .4); }
+  .btn.gh {
+    color: var(--primary); background: rgba(255, 255, 255, .85);
+    border-color: rgba(74, 99, 231, .28); box-shadow: var(--shadow-sm);
+  }
+  .btn.gh:hover { background: #fff; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin: 18px 0; }
+  .kpi { padding: 18px 20px; border-radius: 14px; background: #fbfcff; border: 1px solid var(--border); }
+  .kpi b { display: block; font-size: 25px; font-weight: 700; letter-spacing: -.6px;
+           background: linear-gradient(135deg, var(--primary), var(--accent-2));
+           -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .kpi span { font-size: 12.5px; color: var(--text-3); }
+</style>
+</head>
+<body>
+
+<div class="aurora"><i></i><i></i><i></i></div>
+
+<header class="topbar">
+  <a class="brand" href="index.html">
+    <span class="logo">期</span>
+    <span>
+      <b>期货数据工作台</b>
+      <small>国内期货全品种 · 全合约日K</small>
+    </span>
+  </a>
+  <nav class="topnav">
+    <a class="on" href="index.html">首页</a>
+    <a href="guide.html">使用说明</a>
+    <a href="datasource.html">数据源说明</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <aside class="toc">
+    <h4>快速导航</h4>
+    <a href="#f">功能一览</a>
+    <a href="#quick">快速开始</a>
+    <a href="#run">运行方式</a>
+    <a href="#docs">文档</a>
+    <a href="#notice">注意事项</a>
+    <a href="#dis">免责声明</a>
+  </aside>
+
+  <main>
+
+    <div class="hero">
+      <h1>期货数据工作台</h1>
+      <p>把国内六大期货交易所的<strong>全品种、全合约（含已退市）</strong>日K数据抓下来，用本地网页界面查看、分析与导出 —— 数据落在你自己的硬盘上，不经过任何服务器。</p>
+      <div class="cta">
+        <a class="btn pri" href="https://github.com/chenzhuanxin/futures-workbench/releases/latest" target="_blank" rel="noopener">⬇&nbsp; 下载 exe（Releases）</a>
+        <a class="btn gh" href="https://github.com/chenzhuanxin/futures-workbench/releases/latest" target="_blank" rel="noopener">🧩&nbsp; 下载数据包 zip</a>
+        <a class="btn gh" href="guide.html">📘 使用说明</a>
+        <a class="btn gh" href="datasource.html">🗂 数据源说明</a>
+      </div>
+      <div class="tags">
+        <span class="tag g">免安装 · 双击即用</span>
+        <span class="tag p">Windows</span>
+        <span class="tag p">开源</span>
+        <span class="tag">离线界面</span>
+        <span class="tag">v1.0.0</span>
+      </div>
+    </div>
+
+    <section class="card">
+      <h2 id="f"><span class="no">✦</span>功能一览</h2>
+
+      <div class="kpis">
+        <div class="kpi"><b>6</b><span>家交易所</span></div>
+        <div class="kpi"><b>90+</b><span>个品种</span></div>
+        <div class="kpi"><b>150万+</b><span>条日K记录</span></div>
+        <div class="kpi"><b>全合约</b><span>含已退市</span></div>
+      </div>
+
+      <div class="feat">
+        <div class="mini">
+          <span class="ic">📊</span>
+          <b>全品种 · 全合约</b>
+          <p>中金所、上期所、郑商所、大商所、上期能源、广期所，覆盖上市以来<strong>全部合约</strong>（含已到期退市），不只是主力连续。</p>
+        </div>
+        <div class="mini">
+          <span class="ic">🖥️</span>
+          <b>本地网页界面</b>
+          <p>勾选参数、点开始、实时看日志与进度。结果以 KPI 卡片、汇总表、K 线图呈现，无需命令行。</p>
+        </div>
+        <div class="mini">
+          <span class="ic">📈</span>
+          <b>交互式 K 线图</b>
+          <p>拖拽平移、滚轮缩放、十字光标、双击复位；自动标注<strong>历史最高/最低价及其日期</strong>，一键跳转定位。</p>
+        </div>
+        <div class="mini">
+          <span class="ic">🧮</span>
+          <b>五种技术指标</b>
+          <p>MA、EXPMA、BOLL、BBIBOLL、SAR 可任意勾选叠加，全部在浏览器本地计算，切换零延迟、断网可用。</p>
+        </div>
+        <div class="mini">
+          <span class="ic">🗓️</span>
+          <b>按月分组对比</b>
+          <p>按交割月份分组，<strong>跨年同月合约归为一组</strong>。例如沪金 6 月组会把 AU0806 到 AU2706 放在一起对比。</p>
+        </div>
+        <div class="mini">
+          <span class="ic">⚖️</span>
+          <b>加权合约</b>
+          <p>按各合约<strong>持仓量加权</strong>合成一条无换月跳空的连续序列，用于观察品种整体价格水位。</p>
+        </div>
+        <div class="mini">
+          <span class="ic">💾</span>
+          <b>免重复抓取</b>
+          <p>可指定<strong>本地数据目录</strong>直接载入已有结果，也可以让程序记住上次的数据 —— 重启后零操作恢复，不再重新下载。</p>
+        </div>
+        <div class="mini">
+          <span class="ic">📁</span>
+          <b>原生对话框保存</b>
+          <p>弹<strong>系统原生文件夹对话框</strong>选择本机保存位置，一键导出 Excel / CSV（UTF-8 BOM，中文不乱码）。</p>
+        </div>
+        <div class="mini">
+          <span class="ic">⚡</span>
+          <b>增量缓存</b>
+          <p>每个交易所一个缓存文件。首次慢、之后快；中断也保留已完成部分，下次自动跳过。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 id="quick"><span class="no">1</span>快速开始</h2>
+      <ol>
+        <li>到 <strong>Releases</strong> 下载 <code>FuturesWorkbench-v1.0.0-win64.exe</code>，放到任意目录（如 <code>D:\FuturesWorkbench\</code>）。</li>
+        <li><strong>双击运行</strong>。首次启动会解包依赖，约需 10～40 秒。</li>
+        <li>程序自动打开浏览器并跳转到 <code>http://127.0.0.1:8770</code>。若没自动打开，手动访问该地址即可。</li>
+        <li>左侧勾选交易所与品种（<strong>并发线程建议调到 16</strong>），点「开始抓取」。</li>
+        <li>首次全量抓取<strong>约需 1 个半小时</strong>。之后再次运行会自动增量更新，通常几分钟内完成。</li>
+        <li>在「品种详情」看 K 线，或点底部「保存到本机」导出 Excel / CSV。</li>
+      </ol>
+      <div class="note warn">
+        <span class="ic">⚠</span>
+        <div>
+          <b>关闭控制台窗口 = 停止服务</b>
+          <p>程序运行期间请保留那个黑色控制台窗口。它是服务进程本体，窗口关掉网页就打不开了。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 id="run"><span class="no">2</span>运行方式</h2>
+      <div class="tw">
+        <table>
+          <thead><tr><th>方式</th><th>适合</th><th>做法</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>exe</strong></td>
+              <td>不想装 Python</td>
+              <td>下载后双击 <code>FuturesWorkbench-v1.0.0-win64.exe</code></td>
+            </tr>
+            <tr>
+              <td><strong>源码</strong></td>
+              <td>想看代码 / 二次开发</td>
+              <td><code>pip install -r requirements.txt</code> 然后 <code>python app.py</code>（Windows 可直接双击 <code>启动.bat</code>）</td>
+            </tr>
+            <tr>
+              <td><strong>本地数据模式</strong></td>
+              <td>已有数据、不想重抓</td>
+              <td>左侧「本地数据」选择目录 → 「载入本地数据」。程序也会在启动时自动恢复上次数据。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 id="docs"><span class="no">3</span>文档</h2>
+      <div class="grid">
+        <div class="mini">
+          <span class="k">Document</span>
+          <b><a href="guide.html">使用说明 →</a></b>
+          <p>三种运行方式、界面总览、抓取配置详解、耗时说明、本地数据载入、导出、K 线图与指标用法、目录结构、API 接口、常见问题 FAQ。</p>
+        </div>
+        <div class="mini">
+          <span class="k">Document</span>
+          <b><a href="datasource.html">数据源说明 →</a></b>
+          <p>数据链路、六家交易所官方数据源与起始日期、新浪财经兜底、字段口径、统计指标定义、加权合约算法、清洗规则、已知限制与校验方法。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 id="notice"><span class="no">4</span>注意事项</h2>
+      <ul>
+        <li><strong>首次很慢是正常的。</strong>六家交易所、20 年历史、上百万条记录需要逐日请求，请保持窗口开启。</li>
+        <li><strong>别删缓存目录。</strong>删了下次就要重新全量抓取。</li>
+        <li><strong>数据不是实时的。</strong>日K要在收盘结算后才公布，盘中抓到的当日数据不完整。本工具定位是历史研究，不适用盘中交易决策。</li>
+        <li><strong>不要暴露公网。</strong>服务没有认证机制，只监听 <code>127.0.0.1</code>。如需多人使用请放在内网并加身份验证。</li>
+        <li><strong>极值基于全部合约。</strong>会包含流动性差的远月合约，可能拉高最高价。要看主力口径请用「加权合约」视图。</li>
+        <li><strong>主连不做复权。</strong>换月处存在跳空，不能直接用来算收益率或做回测。</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2 id="dis"><span class="no">5</span>免责声明</h2>
+      <p>本项目仅用于<strong>技术学习与数据研究</strong>。所有数据来自公开的交易所官网与第三方数据接口，程序不对其准确性、完整性、及时性作任何保证。</p>
+      <ul>
+        <li>本工具<strong>不构成任何投资建议</strong>，据此进行的投资决策风险自负。</li>
+        <li>行情数据版权归各期货交易所所有，本工具仅做技术性抓取与聚合，<strong>不主张数据所有权</strong>，请勿用于商业转售。</li>
+        <li>请遵守各交易所网站的使用条款与相关法律法规，控制抓取频率，避免对数据源造成压力。</li>
+        <li>因使用本工具造成的任何直接或间接损失，作者不承担责任。</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <div class="foot">
+    <span>期货数据工作台 v1.0.0 · 数据仅供参考，不构成投资建议</span>
+    <span class="credit">
+      <span class="credit-lbl">设计</span><span class="cname">公歧子</span>
+      <span class="dot-sep"></span>
+      <span class="credit-lbl">微信</span><span class="wx">gongqizi0</span>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>

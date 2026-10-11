@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>使用说明 · 期货数据工作台</title>
+<meta name="description" content="国内期货全品种全合约日K数据工作台 —— 详细使用说明文档">
+<link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+
+<div class="aurora"><i></i><i></i><i></i></div>
+
+<header class="topbar">
+  <a class="brand" href="index.html">
+    <span class="logo">期</span>
+    <span>
+      <b>期货数据工作台</b>
+      <small>国内期货全品种 · 全合约日K</small>
+    </span>
+  </a>
+  <nav class="topnav">
+    <a href="index.html">首页</a>
+    <a class="on" href="guide.html">使用说明</a>
+    <a href="datasource.html">数据源说明</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <!-- ============ 侧栏目录 ============ -->
+  <aside class="toc">
+    <h4>目录</h4>
+    <a href="#s1">1. 三种运行方式</a>
+    <a href="#s2">2. 界面总览</a>
+    <a href="#s3">3. 抓取配置详解</a>
+    <a href="#s4">4. 首次抓取与耗时</a>
+    <a href="#s5">5. 载入本地数据（免重复抓取）</a>
+    <a href="#s6">6. 保存到本机（导出）</a>
+    <a href="#s7">7. 品种详情与 K 线图</a>
+    <a class="lv2" href="#s7-1">7.1 三种视图</a>
+    <a class="lv2" href="#s7-2">7.2 交互操作</a>
+    <a class="lv2" href="#s7-3">7.3 极值标注</a>
+    <a class="lv2" href="#s7-4">7.4 技术指标</a>
+    <a href="#s8">8. 数据文件与目录结构</a>
+    <a href="#s9">9. 零值数据处理规则</a>
+    <a href="#s10">10. 本地接口（API）</a>
+    <a href="#s11">11. 常见问题 FAQ</a>
+    <a href="#s12">12. 免责声明</a>
+  </aside>
+
+  <!-- ============ 正文 ============ -->
+  <main>
+
+    <div class="hero">
+      <h1>使用说明</h1>
+      <p>本文档介绍「期货数据工作台」的完整安装、配置、抓取、查看与导出流程。这是一个运行在你本机上的网页应用 —— 数据全部落地到你自己的硬盘，不上传任何服务器。</p>
+      <div class="tags">
+        <span class="tag p">Windows 免安装</span>
+        <span class="tag p">Python 3.9+</span>
+        <span class="tag g">离线可用界面</span>
+        <span class="tag g">数据本地留存</span>
+        <span class="tag">v1.0.0</span>
+      </div>
+    </div>
+
+    <!-- ---------- 1 ---------- -->
+    <section class="card">
+      <h2 id="s1"><span class="no">1</span>三种运行方式</h2>
+
+      <h3>方式 A：直接运行 exe（推荐，无需装 Python）</h3>
+      <p>从 <a href="https://github.com/chenzhuanxin/futures-workbench/releases/latest" target="_blank" rel="noopener">Releases</a> 下载 <code>FuturesWorkbench-v1.0.0-win64.exe</code>，放到任意目录（例如 <code>D:\FuturesWorkbench\</code>）<strong>双击运行</strong>即可。程序会自动打开浏览器并跳转到 <code>http://127.0.0.1:8770</code>。</p>
+      <div class="note warn">
+        <span class="ic">⚠</span>
+        <div>
+          <b>首次启动需要等待解包</b>
+          <p>单文件 exe 内置了 Python 运行时与数据抓取依赖，首次启动会先解包到系统临时目录，<strong>约需 10～40 秒</strong>（视磁盘速度）。之后启动会快一些。请耐心等待浏览器自动打开。</p>
+        </div>
+      </div>
+
+      <h3 id="pack">方式 A+：直接载入随附数据包（免抓取）</h3>
+      <p>首次全量抓取约需 <b>1 个半小时</b>。若只想先看看效果，可以直接用 Release 页面附带的
+        <code>futures-daily-k-data.zip</code>（约 84 MB，解压后约 313 MB）：</p>
+      <p>① 下载解压，得到 <code>期货日K数据/</code> 目录，内含 <b>91 个品种 xlsx</b>（每个品种含「各月份合约」与「加权合约」两个 sheet）+ <code>汇总_全部品种.xlsx</code> 汇总表；<br>
+        ② 把该目录放到 exe 同目录（放任意位置也可以）；<br>
+        ③ 网页左侧「本地数据」面板 → 该文件夹 → <b>载入本地数据</b>，秒级恢复全部结果。</p>
+      <div class="note">
+        <span class="ic">ℹ</span>
+        <div>
+          <b>数据为打包时快照，行情截至 2026-10-11</b>
+          <p>需要最新数据时，在左侧重新执行一次抓取即可；也可先载入数据包再选择性地补抓。</p>
+        </div>
+      </div>
+
+      <h3>方式 B：源码运行</h3>
+      <p>已安装 Python 3.9 及以上版本时：</p>
+      <pre><code># 1. 安装依赖
+pip install -r requirements.txt
+
+# 2. 启动
+python app.py</code></pre>
+      <p>Windows 用户也可以直接双击项目里的 <code>启动.bat</code>，脚本会自动检测并安装缺失依赖，然后启动服务。</p>
+
+      <h3>方式 C：换端口 / 不自动开浏览器</h3>
+      <pre><code># 指定端口（默认 8770，被占用时自动顺延到 8771、8772…）
+set PORT=9000 &amp;&amp; python app.py
+
+# 不自动打开浏览器（服务器 / 远程桌面场景）
+set NO_BROWSER=1 &amp;&amp; python app.py</code></pre>
+
+      <div class="note info">
+        <span class="ic">ℹ</span>
+        <div>
+          <b>服务只监听 127.0.0.1</b>
+          <p>程序仅绑定本机回环地址，局域网内其他机器无法访问，也不对外暴露任何端口。关闭控制台窗口 = 停止服务。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 2 ---------- -->
+    <section class="card">
+      <h2 id="s2"><span class="no">2</span>界面总览</h2>
+      <p>界面分为四个区域，从左到右、从上到下依次是：</p>
+
+      <div class="grid">
+        <div class="mini">
+          <span class="k">左侧 · 配置区</span>
+          <b>抓取参数</b>
+          <p>交易所、品种、日期区间、并发线程、输出与缓存目录，以及「本地数据」载入面板。</p>
+        </div>
+        <div class="mini">
+          <span class="k">顶部 · 状态栏</span>
+          <b>数据源标识</b>
+          <p>显示当前数据来自「实盘抓取」、「本地数据」还是「文章示例」。</p>
+        </div>
+        <div class="mini">
+          <span class="k">中部 · 内容区</span>
+          <b>四个页签</b>
+          <p>总览 / 品种汇总表 / 品种详情 / 运行日志。</p>
+        </div>
+        <div class="mini">
+          <span class="k">底部 · 操作条</span>
+          <b>进度与导出</b>
+          <p>进度条、保存位置、格式与范围、「保存到本机」按钮，以及可折叠的数据源说明。</p>
+        </div>
+      </div>
+
+      <h3>四个页签各做什么</h3>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>页签</th><th>内容</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>总览</strong></td>
+              <td>6 张 KPI 卡片（品种数、总 K 线条数、上市最久、最新上市、历史最高价、涉及交易所）+ 交易所分布环形图 + 各交易所明细（品种数、占比、K 线条数）。</td>
+            </tr>
+            <tr>
+              <td><strong>品种汇总表</strong></td>
+              <td>全部品种的 14 个统计字段。支持点表头排序、关键词搜索；点击品种代码可直达该品种详情。</td>
+            </tr>
+            <tr>
+              <td><strong>品种详情</strong></td>
+              <td>按品种查看 K 线图：加权合约、全部合约、12 个月份分组视图；支持平移缩放、技术指标、极值定位。</td>
+            </tr>
+            <tr>
+              <td><strong>运行日志</strong></td>
+              <td>抓取过程的实时日志，包含每批次进度、缓存命中情况、异常与重试信息。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ---------- 3 ---------- -->
+    <section class="card">
+      <h2 id="s3"><span class="no">3</span>抓取配置详解</h2>
+
+      <h3>交易所</h3>
+      <p>可多选。每个交易所下方会显示其数据源起始日期，起始日期之前的请求会被自动跳过，避免大量无效请求。</p>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>交易所</th><th>代码</th><th>数据起始</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>中金所</td><td><code>CFFEX</code></td><td>2010-04-16</td><td>股指期货、国债期货</td></tr>
+            <tr><td>上期所</td><td><code>SHFE</code></td><td>2004-06-01</td><td>金属、能源化工等</td></tr>
+            <tr><td>郑商所</td><td><code>CZCE</code></td><td>2010-08-25</td><td>更早日期官方接口不提供逐日数据</td></tr>
+            <tr><td>大商所</td><td><code>DCE</code></td><td>按合约枚举</td><td>官网被 WAF 拦截，走新浪按合约兜底</td></tr>
+            <tr><td>上海国际能源交易中心</td><td><code>INE</code></td><td>2018-03-26</td><td>原油、20 号胶、低硫燃油、国际铜、集运指数</td></tr>
+            <tr><td>广期所</td><td><code>GFEX</code></td><td>2022-12-22</td><td>工业硅、碳酸锂、多晶硅等</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>品种</h3>
+      <ul>
+        <li>按交易所分组展示，每组有「全选 / 反选」复选框。</li>
+        <li>顶部搜索框可按<strong>代码或中文名</strong>过滤，例如输入 <code>沪</code> 会列出沪铜、沪铝、沪金、沪银、沪锌、沪铅、沪镍、沪锡。</li>
+        <li>全部不勾选 = 抓取所选交易所的<strong>全部品种</strong>；只要勾选任意一个，就只抓这些品种。</li>
+      </ul>
+
+      <h3>日期区间</h3>
+      <ul>
+        <li>起始日期留空 → 使用各交易所的数据源最早日期（见上表）。</li>
+        <li>结束日期默认今天；非交易日会被接口自动跳过。</li>
+      </ul>
+
+      <h3>并发线程</h3>
+      <p>1～32，默认 8。<strong>首次全量建议调到 16</strong>；网络状况一般时 8 更稳妥。设得过高可能触发交易所限流，反而变慢。</p>
+
+      <h3>DCE 枚举起始年</h3>
+      <p>大商所走新浪按合约枚举时，从这个年份开始枚举各交割月合约。默认 <code>2000</code>，一般不用改。</p>
+
+      <h3>输出目录 / 缓存目录</h3>
+      <ul>
+        <li>点「浏览…」会弹出 <strong>Windows 系统原生文件夹对话框</strong>，选完自动回填真实绝对路径。</li>
+        <li><strong>输出目录</strong>：最终 Excel 结果落地位置。</li>
+        <li><strong>缓存目录</strong>：抓取过程中的增量缓存（每个交易所一个 <code>.pkl</code>）。<strong>强烈建议保留</strong> —— 有了缓存，二次运行只补新日期，几分钟就完成。</li>
+      </ul>
+
+      <h3>仅用缓存</h3>
+      <p>勾选后跳过「缺失日期回补」环节。当缓存已经比较完整、你只是想快速拿到当前结果时使用，可以省掉大量检查请求。</p>
+
+      <div class="note tip">
+        <span class="ic">✓</span>
+        <div>
+          <b>配置会被记住</b>
+          <p>输出目录、缓存目录、本地数据目录会写入程序目录下的 <code>_prefs.json</code>，下次启动自动回填，也会用于<strong>自动恢复上次结果</strong>。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 4 ---------- -->
+    <section class="card">
+      <h2 id="s4"><span class="no">4</span>首次抓取与耗时</h2>
+      <div class="note warn">
+        <span class="ic">⏱</span>
+        <div>
+          <b>首次全量抓取约需 1 个半小时</b>
+          <p>六家交易所、全部品种、上市以来全部合约（含已退市）的历史日K，累计约 <strong>150 万行</strong>。请保持窗口开启，抓取过程中可以正常使用电脑做别的事。</p>
+        </div>
+      </div>
+      <p>耗时之所以长，是因为要按交易日逐日向各交易所官网请求「当日全部合约行情」，历史跨度长达 20 年以上。大商所部分还要按合约逐个枚举，请求量更大。</p>
+
+      <h3>如何显著缩短时间</h3>
+      <ol>
+        <li><strong>并发调到 16</strong>（左侧滑块）。</li>
+        <li><strong>只选需要的交易所</strong>。例如只做上期所，时间可以降到十分之一以内。</li>
+        <li><strong>只勾选部分品种</strong>。</li>
+        <li><strong>保留缓存目录</strong>。第二次运行只补新数据，通常 1～3 分钟。</li>
+        <li>第二次以后<strong>根本不用抓</strong> —— 用「载入本地数据」直接读上次的结果（见下一节）。</li>
+      </ol>
+
+      <h3>抓取过程中的操作</h3>
+      <ul>
+        <li>底部进度条与百分比实时更新；「运行日志」页签可看详细过程。</li>
+        <li>随时点「<strong>停止</strong>」中断任务。<strong>已完成交易所的缓存会保留</strong>，下次继续时可跳过。</li>
+        <li>某个交易所接口临时不可达时，脚本会<strong>自动沿用该交易所已有缓存</strong>，不会中断整体任务。</li>
+      </ul>
+    </section>
+
+    <!-- ---------- 5 ---------- -->
+    <section class="card">
+      <h2 id="s5"><span class="no">5</span>载入本地数据（免重复抓取）</h2>
+      <p>这是避免「每次启动都要重新下载」的<strong>核心功能</strong>。左侧面板「本地数据」：选择目录 → 点「载入本地数据」，程序会扫描该目录并重建全部结果，<strong>不发起任何网络请求</strong>。</p>
+
+      <h3>识别规则</h3>
+      <p>程序会自动判断目录里有什么，按优先级处理：</p>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>目录内容</th><th>处理方式</th><th>速度</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>存在 <code>_result.pkl</code></td>
+              <td>直接读取全量明细（程序自己生成的明细快照）</td>
+              <td><strong>秒级</strong>（150 万行约 3 秒）</td>
+            </tr>
+            <tr>
+              <td>只有各品种 <code>xxx_品种名.xlsx</code></td>
+              <td>逐个读取 <code>日K线</code> 工作表并合并重建，<strong>同时写回 <code>_result.pkl</code></strong>，下次载入即秒级</td>
+              <td>视品种数量，通常十几秒～1 分钟</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>汇总数据从哪来</h3>
+      <p>优先读取目录里的 <code>汇总_全部品种.xlsx</code>；如果没有，就根据明细现场重算，统计口径与抓取时完全一致。所以即使你只拷贝了几个品种的 Excel 过来，也能正确载入。</p>
+
+      <h3>两种便捷用法</h3>
+      <ul>
+        <li><strong>可以直接指向上一级目录</strong>：例如选到项目根目录，程序会自动下钻到 <code>期货日K数据</code>、<code>数据</code>、<code>output</code>、<code>out</code>、<code>data</code> 等常见子目录名。</li>
+        <li><strong>重启零操作</strong>：上次载入 / 抓取的目录会记进 <code>_prefs.json</code>。下次启动时程序按「上次目录 → 默认输出目录」的顺序自动找回数据，日志里会打印 <code>[启动] 已自动恢复数据：90 个品种</code>。</li>
+      </ul>
+
+      <div class="note info">
+        <span class="ic">ℹ</span>
+        <div>
+          <b>载入后顶部标识会变成「本地数据」</b>
+          <p>此时品种详情、按月分组、加权合约、K 线指标、导出功能全部照常可用，与实盘抓取的结果没有任何区别。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 6 ---------- -->
+    <section class="card">
+      <h2 id="s6"><span class="no">6</span>保存到本机（导出）</h2>
+      <p>底部操作条右侧：</p>
+      <ol>
+        <li>点「<strong>选择位置…</strong>」弹出系统原生对话框，选一个目录。</li>
+        <li>选格式：<strong>Excel (.xlsx)</strong> 或 <strong>CSV (.csv，UTF-8 BOM)</strong> —— BOM 是为了 Excel 直接打开中文不乱码。</li>
+        <li>选范围：
+          <ul>
+            <li><strong>仅汇总表</strong> → 只导出 14 个统计字段的汇总表。适合快速存档、做二次分析。</li>
+            <li><strong>全部行情文件</strong> → 把整个输出目录（每个品种一个 Excel + 汇总表）完整拷贝过去。</li>
+          </ul>
+        </li>
+        <li>点「<strong>保存到本机</strong>」。</li>
+      </ol>
+      <div class="note tip">
+        <span class="ic">✓</span>
+        <div>
+          <b>导出保留原始数据</b>
+          <p>图表展示层会过滤掉价格为 0 的占位数据，但<strong>导出文件保留原始内容</strong>，信息无损。如需连导出也剔除零值行，可以自行用 pandas 过滤 <code>close &gt; 0</code>。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 7 ---------- -->
+    <section class="card">
+      <h2 id="s7"><span class="no">7</span>品种详情与 K 线图</h2>
+      <p>在「品种详情」页签选择品种（或从汇总表点品种代码跳转），即可查看该品种的完整 K 线。图表由项目自带的前端组件绘制，<strong>不依赖任何外部 CDN，断网也能用</strong>。</p>
+
+      <h3 id="s7-1">7.1 三种视图</h3>
+      <p>顶部有一排视图按钮：</p>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>视图</th><th>含义</th><th>呈现方式</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>加权合约</strong></td>
+              <td>把该品种<strong>全部合约</strong>合成为一条连续序列：每日按各合约<strong>持仓量</strong>加权计算开高低收（某合约持仓量为 0 时退化为成交量加权），成交量与持仓量求和。</td>
+              <td>蜡烛图 + 技术指标</td>
+            </tr>
+            <tr>
+              <td><strong>全部合约</strong></td>
+              <td>该品种上市至今的<strong>所有</strong>合约折线叠加。</td>
+              <td>多折线，图例可点选开关</td>
+            </tr>
+            <tr>
+              <td><strong>1 月 … 12 月</strong></td>
+              <td>按<strong>交割月份</strong>分组，<strong>跨年的同月份合约归为一组</strong>。例如「6 月」组会把 AU0806、AU0906 … AU2706 全部放在一起对比。</td>
+              <td>组内只有一个合约 → 蜡烛图；多个合约 → 折线叠加</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note info">
+        <span class="ic">ℹ</span>
+        <div>
+          <b>为什么同一个月份会有多个合约？</b>
+          <p>因为每年都有一个该月份的合约。像沪金（AU）这样的老品种，从 2008 年上市至今，每个月份组里都有约 19 个合约。把它们放在一起，就能直观对比<strong>同一个交割月份在不同年份的价格水平</strong>。</p>
+        </div>
+      </div>
+      <p>图表下方的「合约清单」列出该品种全部合约（含已退市）的代码、交割年月、首末交易日、K 线条数。<strong>点击任一合约</strong>即可切换为<strong>单合约 K 线</strong>（蜡烛图 + 指标）。</p>
+
+      <h3 id="s7-2">7.2 交互操作</h3>
+      <div class="tw">
+        <table>
+          <thead><tr><th>操作</th><th>效果</th></tr></thead>
+          <tbody>
+            <tr><td><strong>按住左键左右拖动</strong></td><td>横向平移，回看更早的历史</td></tr>
+            <tr><td><strong>滚轮</strong></td><td>以光标位置为中心缩放（K 线根数变化）</td></tr>
+            <tr><td><strong>双击图表</strong></td><td>恢复默认视图</td></tr>
+            <tr><td><strong>移动鼠标</strong></td><td>十字光标 + 顶部提示条显示该日<strong>开 / 高 / 低 / 收 / 成交量</strong>（折线模式显示各合约收盘价）</td></tr>
+            <tr><td><strong>重置视图</strong> 按钮</td><td>回到最近一段时间的默认显示</td></tr>
+            <tr><td><strong>📍 历史最高 / 📍 历史最低</strong> 按钮</td><td>一键把视窗跳到历史极值所在位置，并在图上高亮</td></tr>
+            <tr><td><strong>点击图例项</strong></td><td>折线模式下隐藏 / 显示某条合约线</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="s7-3">7.3 极值标注</h3>
+      <ul>
+        <li>图上用<strong>虚线 + 标签</strong>标出历史最高价与历史最低价，标签含<strong>价格与日期</strong>。</li>
+        <li>图表上方同步列出，并在折线叠加模式下额外标明是<strong>哪个合约</strong>创下的。</li>
+        <li>极值只统计<strong>正价格</strong>，不会出现「历史最低价 = 0」这种假象。</li>
+      </ul>
+
+      <h3 id="s7-4">7.4 技术指标</h3>
+      <p>勾选即可叠加，全部在浏览器本地计算，切换<strong>零延迟</strong>：</p>
+      <div class="tw">
+        <table>
+          <thead><tr><th>指标</th><th>参数</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td><strong>MA</strong> 移动平均线</td><td>5 / 10 / 20 / 60</td><td>算术移动平均</td></tr>
+            <tr><td><strong>EXPMA</strong> 指数平滑移动平均</td><td>12 / 50</td><td>对近期价格给更高权重</td></tr>
+            <tr><td><strong>BOLL</strong> 布林带</td><td>20 周期，2 倍标准差</td><td>中轨 + 上下轨 + 填充带</td></tr>
+            <tr><td><strong>BBIBOLL</strong> 多空布林带</td><td>11 周期，6 倍标准差</td><td>BBI 中轨 + 上下轨</td></tr>
+            <tr><td><strong>SAR</strong> 抛物线转向</td><td>步长 0.02，极值 0.02，上限 0.2</td><td>点位图 + 连线</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note warn">
+        <span class="ic">⚠</span>
+        <div>
+          <b>指标计算会自动跳过无效 K 线</b>
+          <p>价格为 0 的占位 K 线不参与指标计算，否则 MA / EXPMA 会被 0 严重稀释。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- 8 ---------- -->
+    <section class="card">
+      <h2 id="s8"><span class="no">8</span>数据文件与目录结构</h2>
+
+      <div class="tree">运行目录/
+├─ FuturesWorkbench.exe      ← 主程序
+├─ 启动.bat                   ← 源码方式的一键启动脚本
+├─ 期货日K数据/               ← 【输出目录】
+│   ├─ 汇总_全部品种.xlsx      · 工作表「汇总」：全部品种 14 个统计字段
+│   ├─ CU_沪铜.xlsx            · 工作表「品种汇总」+「日K线」
+│   ├─ AU_沪金.xlsx
+│   ├─ …（每个品种一个文件）
+│   └─ _result.pkl             · 全量明细快照（供「载入本地数据」秒级读取）
+├─ 期货数据缓存/               ← 【缓存目录】
+│   ├─ CFFEX.pkl  SHFE.pkl  CZCE.pkl  DCE.pkl  INE.pkl  GFEX.pkl
+│   └─ …（增量缓存，勿删）
+├─ _prefs.json                ← 记住上次用的目录
+└─ docs/                      ← 本文档站（GitHub Pages）</div>
+
+      <h3>汇总表 14 个字段</h3>
+      <div class="tw">
+        <table>
+          <thead><tr><th>字段</th><th>含义</th></tr></thead>
+          <tbody>
+            <tr><td>品种代码 / 品种名称 / 交易所</td><td>如 <code>CU</code> / 沪铜 / <code>SHFE</code></td></tr>
+            <tr><td>上市日期</td><td>该品种<strong>最早</strong>一条 K 线的日期（基于最早合约）</td></tr>
+            <tr><td>总交易天数</td><td>去重后的<strong>交易日数量</strong>（同一天多个合约只算一天）</td></tr>
+            <tr><td>总K线条数</td><td>该品种全部合约的 K 线<strong>总条数</strong>（含已退市合约）</td></tr>
+            <tr><td>历史最高价 / 最高价日期 / 最高价合约</td><td>全部合约中 <code>最高价</code> 的最大值及其发生日期与所属合约</td></tr>
+            <tr><td>历史最低价 / 最低价日期 / 最低价合约</td><td>全部合约中 <code>最低价</code> 的最小值及其发生日期与所属合约</td></tr>
+            <tr><td>主连平均收盘价</td><td>每日取<strong>持仓量最大</strong>的合约作为当日主力，把主力收盘价拼成连续序列后求平均</td></tr>
+            <tr><td>主连平均结算价</td><td>同上，但取<strong>结算价</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>日K线工作表的列</h3>
+      <p><code>合约</code>、<code>日期</code>、<code>开盘</code>、<code>最高</code>、<code>最低</code>、<code>收盘</code>、<code>成交量</code>、<code>持仓量</code>、<code>成交额</code>、<code>结算</code>、<code>前结算</code>、<code>品种</code>、<code>交易所</code>。日期格式为 <code>YYYY-MM-DD</code>。</p>
+    </section>
+
+    <!-- ---------- 9 ---------- -->
+    <section class="card">
+      <h2 id="s9"><span class="no">9</span>零值数据处理规则</h2>
+      <p>交易所日K接口在<strong>无成交的交易日</strong>会返回占位行，价格字段为 0。如果直接画进图里，会导致纵轴被拉到 0、所有曲线挤在顶部、历史最低价显示为 0、均线被稀释。程序统一按「<strong>期货价格不可能为 0</strong>」处理：</p>
+      <div class="tw">
+        <table>
+          <thead><tr><th>情形</th><th>图表上的表现</th><th>导出文件</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>开高低收<strong>全部为 0</strong>（无成交占位行）</td>
+              <td>整条不返回，<strong>不占日期轴、不绘制、不连线</strong></td>
+              <td>保留原始行</td>
+            </tr>
+            <tr>
+              <td>开高低为 0、<strong>仅收盘有值</strong></td>
+              <td>日期轴保留（能看出当日无成交），<strong>不画蜡烛</strong>；折线模式用有效收盘价绘制</td>
+              <td>保留原始行</td>
+            </tr>
+            <tr>
+              <td>折线模式下某合约某日收盘为 0</td>
+              <td><strong>该点断开</strong>，也不参与纵轴范围计算</td>
+              <td>保留原始行</td>
+            </tr>
+            <tr>
+              <td>整个合约全部是 0</td>
+              <td>不再出现在合约清单里</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>把光标移到无有效行情的日期上时，提示条会显示「该日无有效行情（零值数据，未绘制）」。</p>
+    </section>
+
+    <!-- ---------- 10 ---------- -->
+    <section class="card">
+      <h2 id="s10"><span class="no">10</span>本地接口（API）</h2>
+      <p>后端是一个本地 Flask 服务，所有接口都只在 <code>127.0.0.1</code> 可用。如果你想写脚本对接，可以直接调用：</p>
+      <div class="tw">
+        <table>
+          <thead><tr><th>方法</th><th>路径</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>GET</td><td><code>/health</code></td><td>健康检查，返回版本号与是否以 exe 运行</td></tr>
+            <tr><td>GET</td><td><code>/api/config</code></td><td>交易所、品种清单、默认目录、上次使用的目录等</td></tr>
+            <tr><td>POST</td><td><code>/api/run</code></td><td>启动抓取任务（JSON：<code>markets / start / end / out_dir / cache_dir / workers / keep</code>）</td></tr>
+            <tr><td>GET</td><td><code>/api/progress</code></td><td>任务进度、百分比、日志、是否运行中</td></tr>
+            <tr><td>POST</td><td><code>/api/stop</code></td><td>中断当前任务</td></tr>
+            <tr><td>GET</td><td><code>/api/summary</code></td><td>当前汇总结果（含数据来源标识）</td></tr>
+            <tr><td>POST</td><td><code>/api/demo</code></td><td>载入内置示例数据（断网时预览界面用）</td></tr>
+            <tr><td>POST</td><td><code>/api/load-local</code></td><td>载入指定本地目录的数据</td></tr>
+            <tr><td>POST</td><td><code>/api/local-scan</code></td><td>预览某目录里有什么数据（不载入）</td></tr>
+            <tr><td>GET</td><td><code>/api/variety?code=CU</code></td><td>某品种的合约清单、月份分组、加权合约序列与极值</td></tr>
+            <tr><td>GET</td><td><code>/api/contracts?code=CU&amp;month=9</code></td><td>某品种某月份分组下全部（跨年同月）合约的日K序列</td></tr>
+            <tr><td>GET</td><td><code>/api/contract?symbol=CU2409</code></td><td>单个合约的日K序列与极值</td></tr>
+            <tr><td>POST</td><td><code>/api/export</code></td><td>导出到指定目录（JSON：<code>dir / format / scope</code>）</td></tr>
+            <tr><td>POST</td><td><code>/api/pick</code></td><td>弹出系统原生文件夹 / 另存为对话框</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>示例：</p>
+      <pre><code># 载入本地数据目录
+curl -X POST http://127.0.0.1:8770/api/load-local \
+     -H "Content-Type: application/json" \
+     -d '{"dir":"D:/期货数据"}'
+
+# 取沪铜的合约分组与加权合约
+curl "http://127.0.0.1:8770/api/variety?code=CU"</code></pre>
+    </section>
+
+    <!-- ---------- 11 ---------- -->
+    <section class="card">
+      <h2 id="s11"><span class="no">11</span>常见问题 FAQ</h2>
+
+      <h3>Q1：双击 exe 后很久没反应？</h3>
+      <p>单文件 exe 首次启动要解包内置的 Python 运行时与依赖（含 pandas、akshare），约 10～40 秒。杀毒软件实时防护也会拖慢首次解包。建议把 exe 放到固定目录（如 <code>D:\FuturesWorkbench\</code>），并加入杀毒软件白名单。</p>
+
+      <h3>Q2：浏览器没有自动打开？</h3>
+      <p>手动访问 <code>http://127.0.0.1:8770</code>。如果控制台里显示的端口不是 8770（例如提示「8770 端口被占用，已自动改用 8771」），就用控制台里显示的那个地址。</p>
+
+      <h3>Q3：抓取到一半报错 / 卡住？</h3>
+      <ul>
+        <li>交易所官网在收盘结算时段可能短暂不可用 —— 用缓存目录重跑即可，已抓到的不会丢。</li>
+        <li>把并发线程调低到 4～8 再试。</li>
+        <li>大商所官网反爬策略变化时，可能需要对源码做适配，欢迎提 Issue。</li>
+      </ul>
+
+      <h3>Q4：每次启动都要重新抓吗？</h3>
+      <p>不用。只要<strong>输出目录和缓存目录不变</strong>，程序启动时会自动恢复上次结果；也可以手动用「载入本地数据」指向任意一份已有数据。</p>
+
+      <h3>Q5：能导出成数据库 / Parquet 吗？</h3>
+      <p>程序提供 Excel 与 CSV 两种导出。你要其它格式，可以直接读输出目录里的 <code>_result.pkl</code>：</p>
+      <pre><code>import pandas as pd
+df = pd.read_pickle("期货日K数据/_result.pkl")
+df.to_parquet("futures.parquet")</code></pre>
+
+      <h3>Q6：数据是实时的吗？</h3>
+      <p>不是。日K数据在<strong>当日收盘结算之后</strong>才会由交易所公布。盘中的当日数据通常不完整。本工具定位是<strong>历史研究 / 回测取数</strong>，不适用盘中交易决策。</p>
+
+      <h3>Q7：为什么某个品种的历史最高价看起来不对？</h3>
+      <p>注意极值是<strong>该品种全部合约</strong>的极值，不是主力连续合约的极值。远月合约在流动性差的时候可能出现异常报价，会拉高极值。你可以进「品种详情」定位到具体是哪个合约。另外，合约价格<strong>未做复权 / 不复权处理</strong>（期货合约本身不存在复权概念）。</p>
+
+      <h3>Q8：可以放服务器上跑吗？</h3>
+      <p>可以，但<strong>不建议直接暴露公网</strong>：没有认证机制。如需多人使用，请放在内网并加反向代理 + 身份验证。设置环境变量 <code>NO_BROWSER=1</code> 可关闭自动开浏览器。</p>
+    </section>
+
+    <!-- ---------- 12 ---------- -->
+    <section class="card">
+      <h2 id="s12"><span class="no">12</span>免责声明</h2>
+      <ul>
+        <li>本工具仅用于<strong>技术学习与数据研究</strong>，所有数据来自公开的交易所官网与第三方数据接口，程序不对数据的准确性、完整性、及时性作任何保证。</li>
+        <li>抓取频率请自行控制，<strong>避免对数据源服务器造成压力</strong>。请遵守各交易所网站的使用条款与 robots 协议。</li>
+        <li>本工具<strong>不构成任何投资建议</strong>。据此进行的任何投资决策，风险自负。</li>
+        <li>请勿将本工具用于商业转售数据等侵犯数据源权益的用途。</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <div class="foot">
+    <span>期货数据工作台 v1.0.0 · 数据仅供参考，不构成投资建议</span>
+    <span class="credit">
+      <span class="credit-lbl">设计</span><span class="cname">公歧子</span>
+      <span class="dot-sep"></span>
+      <span class="credit-lbl">微信</span><span class="wx">gongqizi0</span>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>

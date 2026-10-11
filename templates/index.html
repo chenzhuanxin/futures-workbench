@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>期货数据工作台 · 全品种全合约日K抓取与分析</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true">
+  <span class="blob b1"></span>
+  <span class="blob b2"></span>
+  <span class="blob b3"></span>
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">期</div>
+    <div class="brand-txt">
+      <h1>期货数据工作台</h1>
+      <p>国内六大交易所 · 全品种全合约（含已退市）日K抓取与统计分析</p>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="pill" id="sourcePill"><i class="dot"></i>未加载数据</span>
+    <span class="pill ghost" id="statusPill"><i class="dot"></i>就绪</span>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ================= 左侧配置 ================= -->
+  <aside class="panel config">
+    <div class="panel-head">
+      <h2>抓取配置</h2>
+      <button class="link-btn" id="btnReset">重置</button>
+    </div>
+
+    <div class="notice">
+      <span class="notice-ico">⏱</span>
+      <div>
+        <strong>首次全量抓取约需 1 个半小时</strong>
+        <span>六大交易所全品种首次抓取耗时较长（约 90 分钟），建议并发线程调到 16 并保持窗口开启；之后重跑会自动增量更新。若本机已有数据，可直接用下方「载入本地数据」读取，无需重新下载。</span>
+      </div>
+    </div>
+
+    <!-- 本地数据：读取已有结果，免重复抓取 -->
+    <div class="local-box">
+      <div class="local-head">
+        <span class="local-ico">💾</span>
+        <strong>本地数据</strong>
+        <small>已有数据直接读取，免重复下载</small>
+      </div>
+      <div class="path-row">
+        <input class="input path" id="localDir" placeholder="选择之前抓取生成的数据目录">
+        <button class="btn btn-ghost" data-pick="localDir" data-title="选择已有的数据目录">浏览…</button>
+      </div>
+      <button class="btn btn-accent btn-block sm" id="btnLoadLocal">载入本地数据</button>
+      <div class="local-tip" id="localTip">
+        可指向含 <code>_result.pkl</code> 或各品种 <code>xlsx</code>（如 CU_沪铜.xlsx）的目录；载入后即可查看汇总与逐日K线，无需联网。
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="lbl">交易所 <em>可多选</em></label>
+      <div class="chips" id="marketChips"></div>
+    </div>
+
+    <div class="field">
+      <div class="lbl-row">
+        <label class="lbl">品种 <em id="varietyCount"></em></label>
+        <div class="mini-actions">
+          <button class="link-btn" id="btnAllVar">全选</button>
+          <button class="link-btn" id="btnNoVar">清空</button>
+        </div>
+      </div>
+      <input class="input search" id="varSearch" placeholder="搜索品种代码或中文名，如 CU / 沪铜">
+      <div class="variety-box" id="varietyBox"></div>
+    </div>
+
+    <div class="field grid2">
+      <div>
+        <label class="lbl">起始日期</label>
+        <input class="input" id="startDate" placeholder="YYYYMMDD，留空=最早">
+      </div>
+      <div>
+        <label class="lbl">结束日期</label>
+        <input class="input" id="endDate" placeholder="YYYYMMDD，默认今天">
+      </div>
+    </div>
+
+    <div class="field grid2">
+      <div>
+        <label class="lbl">并发线程 <em id="workerVal">10</em></label>
+        <input type="range" id="workers" min="1" max="32" value="10" class="range">
+      </div>
+      <div>
+        <label class="lbl">DCE 枚举起始年</label>
+        <input class="input" id="dceYear" value="2000">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="lbl">输出目录</label>
+      <div class="path-row">
+        <input class="input path" id="outDir" readonly>
+        <button class="btn btn-ghost" data-pick="outDir" data-title="选择输出目录">浏览…</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="lbl">缓存目录</label>
+      <div class="path-row">
+        <input class="input path" id="cacheDir" readonly>
+        <button class="btn btn-ghost" data-pick="cacheDir" data-title="选择缓存目录">浏览…</button>
+      </div>
+    </div>
+
+    <label class="switch">
+      <input type="checkbox" id="noRepair">
+      <span class="track"><span class="thumb"></span></span>
+      <span class="switch-txt">
+        <strong>仅用缓存，不回补缺失日期</strong>
+        <small>缓存基本完整时可跳过回补，速度更快</small>
+      </span>
+    </label>
+
+    <div class="config-foot">
+      <button class="btn btn-primary btn-block" id="btnRun">
+        <span class="spinner" hidden></span><span class="txt">开始抓取</span>
+      </button>
+      <button class="btn btn-ghost btn-block" id="btnDemo">载入文章示例数据（免联网预览）</button>
+    </div>
+  </aside>
+
+  <!-- ================= 右侧结果 ================= -->
+  <section class="content">
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-tab="overview">总览</button>
+      <button class="tab" data-tab="table">品种汇总表</button>
+      <button class="tab" data-tab="detail">品种详情</button>
+      <button class="tab" data-tab="log">运行日志<span class="badge" id="logBadge">0</span></button>
+    </nav>
+
+    <!-- 总览 -->
+    <div class="pane active" id="pane-overview">
+      <div class="kpis" id="kpis"></div>
+      <div class="card">
+        <div class="card-head">
+          <h3>交易所品种分布</h3>
+          <span class="sub">按交易所统计品种数量与数据规模</span>
+        </div>
+        <div class="overview-split">
+          <div class="chart-host donut" id="chartDonut"></div>
+          <div class="mkt-summary" id="mktSummary"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 汇总表 -->
+    <div class="pane" id="pane-table">
+      <div class="card">
+        <div class="card-head">
+          <h3>全品种汇总</h3>
+          <div class="card-tools">
+            <input class="input search sm" id="tableSearch" placeholder="搜索品种 / 交易所…">
+            <button class="btn btn-ghost sm" id="btnExportCsv">导出 CSV</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table class="data-table" id="summaryTable"></table></div>
+        <div class="table-foot" id="tableFoot"></div>
+      </div>
+    </div>
+
+    <!-- 品种详情 -->
+    <div class="pane" id="pane-detail">
+      <div class="empty" id="detailEmpty">
+        <div class="empty-ico">📈</div>
+        <p id="detailEmptyMsg">请先在左侧完成一次实际抓取，然后在此查看合约日K明细。</p>
+        <p class="muted">文章示例数据只包含汇总统计，不含逐日行情。</p>
+      </div>
+
+      <div id="detailBody" hidden>
+        <div class="detail-bar">
+          <label class="lbl">品种</label>
+          <select class="input" id="detailSelect"></select>
+          <span class="bar-sep"></span>
+          <label class="lbl">视图</label>
+          <div class="seg-scroll"><div class="seg" id="viewSeg"></div></div>
+          <span class="bar-grow"></span>
+          <button class="btn btn-ghost sm" id="btnResetView">重置视图</button>
+        </div>
+
+        <div class="ind-bar" id="indBar">
+          <span class="lbl">技术指标</span>
+          <label class="chk"><input type="checkbox" data-ind="ma" checked><span>MA</span></label>
+          <label class="chk"><input type="checkbox" data-ind="expma"><span>EXPMA</span></label>
+          <label class="chk"><input type="checkbox" data-ind="boll"><span>BOLL</span></label>
+          <label class="chk"><input type="checkbox" data-ind="bbiboll"><span>BBIBOLL</span></label>
+          <label class="chk"><input type="checkbox" data-ind="sar"><span>SAR</span></label>
+          <span class="bar-grow"></span>
+          <button class="btn btn-ghost sm" id="btnGotoHigh">📍 历史最高</button>
+          <button class="btn btn-ghost sm" id="btnGotoLow">📍 历史最低</button>
+          <span class="hint">拖拽左右平移 · 滚轮缩放 · 双击复位</span>
+        </div>
+
+        <div class="card chart-card">
+          <div class="kline-top">
+            <div class="kline-title" id="klineTitle">—</div>
+            <div class="kline-extrema" id="klineExtrema"></div>
+          </div>
+          <canvas id="klineCanvas" class="kline-canvas"></canvas>
+          <div class="kline-legend" id="klineLegend"></div>
+          <div class="kline-tip" id="klineTip">—</div>
+        </div>
+
+        <div class="card" id="contractCard">
+          <div class="card-head">
+            <h3>合约清单 · 按月分组（跨年同月合约归为一组）</h3>
+            <span class="sub" id="contractSub">—</span>
+          </div>
+          <div class="table-wrap"><table class="data-table compact" id="contractTable"></table></div>
+        </div>
+
+        <div class="detail-stats" id="detailStats"></div>
+      </div>
+    </div>
+
+    <!-- 日志 -->
+    <div class="pane" id="pane-log">
+      <div class="card">
+        <div class="card-head">
+          <h3>运行日志</h3>
+          <div class="card-tools">
+            <button class="btn btn-ghost sm" id="btnClearLog">清空</button>
+            <button class="btn btn-ghost sm" id="btnCopyLog">复制</button>
+          </div>
+        </div>
+        <pre class="logbox" id="logBox">等待任务启动…</pre>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ================= 底部：数据源说明（可折叠） + 操作条 ================= -->
+<div class="bottombar">
+
+  <div class="srcbar" id="srcBar">
+    <div class="srcbar-body" id="srcBody" hidden>
+      <div class="src-cols">
+        <div class="src-col">
+          <h4>数据引擎</h4>
+          <a class="src-item" href="https://akshare.akfamily.xyz/" target="_blank" rel="noopener">
+            <b>AKShare</b><span>开源财经数据接口库，本工具的数据获取引擎（akshare.akfamily.xyz）</span>
+          </a>
+          <a class="src-item" href="https://pandas.pydata.org/" target="_blank" rel="noopener">
+            <b>pandas / NumPy</b><span>数据清洗、加权合成与统计分析</span>
+          </a>
+        </div>
+        <div class="src-col">
+          <h4>交易所官网日行情（原始数据源）</h4>
+          <a class="src-item" href="http://www.cffex.com.cn/" target="_blank" rel="noopener">
+            <b>中国金融期货交易所 CFFEX</b><span>股指、国债期货日行情 · 2010-04-16 起</span>
+          </a>
+          <a class="src-item" href="https://www.shfe.com.cn/" target="_blank" rel="noopener">
+            <b>上海期货交易所 SHFE</b><span>铜铝金钢等日行情 · 2004-06-01 起</span>
+          </a>
+          <a class="src-item" href="http://www.czce.com.cn/" target="_blank" rel="noopener">
+            <b>郑州商品交易所 CZCE</b><span>棉糖玻璃等日行情 · 2010-08-25 起</span>
+          </a>
+          <a class="src-item" href="https://www.ine.cn/" target="_blank" rel="noopener">
+            <b>上海国际能源交易中心 INE</b><span>原油、20号胶、国际铜等 · 2018-03-26 起</span>
+          </a>
+          <a class="src-item" href="http://www.gfex.com.cn/" target="_blank" rel="noopener">
+            <b>广州期货交易所 GFEX</b><span>工业硅、碳酸锂等 · 2022-12-22 起</span>
+          </a>
+          <a class="src-item" href="http://www.dce.com.cn/" target="_blank" rel="noopener">
+            <b>大连商品交易所 DCE</b><span>豆类、黑色、化工等（官网接口有反爬，见下）</span>
+          </a>
+        </div>
+        <div class="src-col">
+          <h4>兜底数据源</h4>
+          <a class="src-item" href="https://finance.sina.com.cn/futures/quotes/" target="_blank" rel="noopener">
+            <b>新浪财经 · 期货</b><span>大商所官网被瑞数 WAF 拦截（返回 412）时，改由新浪按合约逐月取日K，保证「全合约（含已退市）」</span>
+          </a>
+        </div>
+      </div>
+      <p class="src-note">
+        说明：本工具只抓取<b>期货</b>品种、不含期权，并过滤交易所日K自带的「连续/指数」合成合约（0 / 88 / 888 / 99 结尾）。
+        所有数据均为各交易所官网公开发布的日行情，仅供个人研究学习使用，不构成任何投资建议。
+      </p>
+    </div>
+    <button class="srcbar-head" id="srcToggle" type="button" aria-expanded="false">
+      <span class="src-ico">🔗</span>
+      <span class="src-title">数据源说明</span>
+      <span class="src-hint">AKShare · 六大交易所官网日行情 · 新浪财经（大商所兜底）</span>
+      <span class="src-chev">▾</span>
+    </button>
+  </div>
+
+  <div class="actionbar">
+    <div class="progress-wrap">
+      <div class="progress"><div class="bar" id="progressBar"></div></div>
+      <div class="progress-meta">
+        <span id="progressText">就绪</span>
+        <span id="progressPct">0%</span>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="save-path">
+        <input class="input path" id="saveDir" placeholder="选择本机保存位置，如 D:\期货数据">
+        <button class="btn btn-ghost" data-pick="saveDir" data-title="选择保存位置">选择位置…</button>
+      </div>
+      <select class="input sm" id="saveFormat">
+        <option value="xlsx">Excel (.xlsx)</option>
+        <option value="csv">CSV (.csv)</option>
+      </select>
+      <select class="input sm" id="saveScope">
+        <option value="summary">仅汇总表</option>
+        <option value="all">全部行情文件</option>
+      </select>
+      <button class="btn btn-accent" id="btnSave">保存到本机</button>
+      <button class="btn btn-danger" id="btnStop" hidden>停止</button>
+    </div>
+    <div class="credit">
+      <span class="credit-lbl">设计</span><span class="credit-name">公歧子</span>
+      <span class="credit-div"></span>
+      <span class="credit-lbl">微信</span><span class="credit-wx">gongqizi0</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script src="/static/js/kline.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

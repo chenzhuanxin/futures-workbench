@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/logo.png" width="120" alt="futures-workbench"></p>
+
 # 期货数据工作台
 
 把国内六大期货交易所的**全品种、全合约（含已退市）**日K数据抓下来，
